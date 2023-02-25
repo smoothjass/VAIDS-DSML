@@ -186,6 +186,8 @@ X_scale = np.round(X_scale, 3)
 new_df = pd.DataFrame(np.hstack((X, y.reshape(-1, 1))), columns=
 ['age', 'creatinine_phosphokinase', 'platelets', 'serum_creatinine', 'serum_sodium', 'time', 'ejection_fraction'])
 
+print("test")
+
 ########################################################################################################################
 # PART 3 // MODEL BUILDING
 ########################################################################################################################
