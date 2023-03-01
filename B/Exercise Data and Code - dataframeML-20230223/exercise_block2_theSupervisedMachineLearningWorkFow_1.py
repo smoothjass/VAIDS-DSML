@@ -40,7 +40,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
-
+from tabulate import tabulate
 
 ########################################################################################################################
 # PART1 // PREPARE FOR CLASSIFICATION
@@ -92,8 +92,8 @@ df = pd.read_csv(pth, sep=",")
 # y = ...
 X = df[['age', 'creatinine_phosphokinase', 'ejection_fraction', 'platelets', 'serum_sodium', 'smoking']].to_numpy()
 y = df['DEATH_EVENT'].to_numpy()
-X.shape
-y.shape
+# X.shape
+# y.shape
 
 # scale ---------------------------------
 # -- pre-coded --
@@ -110,8 +110,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y,
 # rebuild the data frame and bind it to a variable ----------------
 # -- student work --
 # solution = ...
-new_df = pd.DataFrame(np.hstack((X, y.reshape(-1, 1))), columns=
+new_df1 = pd.DataFrame(np.hstack((X, y.reshape(-1, 1))), columns=
 ['age', 'creatinine_phosphokinase', 'ejection_fraction', 'platelets', 'serum_sodium', 'smoking', 'DEATH_EVENT'])
+
+# print(new_df1)
 
 ########################################################################################################################
 # PART 2 // PREPARE FOR REGRESSION
@@ -183,10 +185,10 @@ X_scale = np.round(X_scale, 3)
 # rebuild the data frame and return------
 # -- student work --
 # solution =
-new_df = pd.DataFrame(np.hstack((X, y.reshape(-1, 1))), columns=
+new_df2 = pd.DataFrame(np.hstack((X, y.reshape(-1, 1))), columns=
 ['age', 'creatinine_phosphokinase', 'platelets', 'serum_creatinine', 'serum_sodium', 'time', 'ejection_fraction'])
 
-print("test")
+# print(new_df2)
 
 ########################################################################################################################
 # PART 3 // MODEL BUILDING
@@ -273,8 +275,8 @@ solution_dataframe_columns = ["y_classification", "y_hat_classification_k1", "y_
 
 # read the data ------------------------------
 # -- pre coded --
-pth1 = r'' # path to classification dataset
-pth2 = r'' # pth to regression dataset
+pth1 = 'data_part3_heartfailure_classification.csv' # path to classification dataset
+pth2 = 'data_part3_heartfailure_regression.csv' # pth to regression dataset
 df_cls = pd.read_csv(pth1, sep=";")
 df_reg = pd.read_csv(pth2, sep=";")
 
@@ -284,6 +286,13 @@ df_reg = pd.read_csv(pth2, sep=";")
 # y_cls =
 # X_reg =
 # y_reg =
+y_cls = df_cls['DEATH_EVENT'].to_numpy()
+df_cls.drop(['DEATH_EVENT'], inplace=True, axis=1)
+X_cls = df_cls.to_numpy()
+
+y_reg = df_reg['ejection_fraction'].to_numpy()
+df_reg.drop(['ejection_fraction'], inplace=True, axis=1)
+X_reg = df_reg.to_numpy()
 
 # init 4 knn models (2 for classification, 2 for regressions) ---
 # see docstring for details!
@@ -304,6 +313,15 @@ _7nn_reg = KNeighborsRegressor(7)
 # y_hat_classification_k5 = ...
 # y_hat_regression_k1 = ...
 # y_hat_regression_k7 = ...
+_1nn_cls = _1nn_cls.fit(X_cls, y_cls)
+y_hat_classification_k1 = _1nn_cls.predict(X_cls)
+_5nn_cls = _5nn_cls.fit(X_cls, y_cls)
+y_hat_classification_k5 = _5nn_cls.predict(X_cls)
+
+_1nn_reg = _1nn_reg.fit(X_reg, y_reg)
+y_hat_regression_k1 = _1nn_reg.predict(X_reg)
+_7nn_reg = _7nn_reg.fit(X_reg, y_reg)
+y_hat_regression_k7 = _7nn_reg.predict(X_reg)
 
 # calculate errors/mis-classifications ---------------
 # -- pre coded --
@@ -315,33 +333,5 @@ error_y_hat_regression_k7 = y_reg - y_hat_regression_k7
 # build dataframes as described above -----------------------
 # -- students work --
 # solution =
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+new_df3 = pd.DataFrame(np.vstack((y_cls, y_hat_classification_k1, y_hat_classification_k5, error_y_hat_classification_k1, error_y_hat_classification_k5, y_reg, y_hat_regression_k1, y_hat_regression_k7, error_y_hat_regression_k1, error_y_hat_regression_k7)).T.round(3), columns=solution_dataframe_columns)
+print(tabulate(new_df3, headers = ['y_cls', 'cls_k1', 'cls_k5', 'error_cls_k1', 'error_cls_k5', 'y_reg', 'reg_k1', 'reg_k7', 'error_reg_k1', 'error_reg_k7'], tablefmt = 'psql'))
