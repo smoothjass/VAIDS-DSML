@@ -172,7 +172,8 @@ df = pd.read_csv(pth, sep=",")
 # X =
 # y =
 y = df['ejection_fraction'].to_numpy()
-df.drop(['sex', 'diabetes', 'high_blood_pressure', 'smoking', 'anaemia', 'DEATH_EVENT', 'ejection_fraction'], inplace=True, axis=1)
+df.drop(['sex', 'diabetes', 'high_blood_pressure', 'smoking', 'anaemia', 'DEATH_EVENT', 'ejection_fraction'],
+        inplace=True, axis=1)
 X = df.to_numpy(float)
 
 # scale ---------------------------------
@@ -333,5 +334,9 @@ error_y_hat_regression_k7 = y_reg - y_hat_regression_k7
 # build dataframes as described above -----------------------
 # -- students work --
 # solution =
-new_df3 = pd.DataFrame(np.vstack((y_cls, y_hat_classification_k1, y_hat_classification_k5, error_y_hat_classification_k1, error_y_hat_classification_k5, y_reg, y_hat_regression_k1, y_hat_regression_k7, error_y_hat_regression_k1, error_y_hat_regression_k7)).T.round(3), columns=solution_dataframe_columns)
-print(tabulate(new_df3, headers = ['y_cls', 'cls_k1', 'cls_k5', 'error_cls_k1', 'error_cls_k5', 'y_reg', 'reg_k1', 'reg_k7', 'error_reg_k1', 'error_reg_k7'], tablefmt = 'psql'))
+new_df3 = pd.DataFrame(np.vstack(
+    (y_cls, y_hat_classification_k1, y_hat_classification_k5, error_y_hat_classification_k1, error_y_hat_classification_k5,
+     y_reg, y_hat_regression_k1, y_hat_regression_k7, error_y_hat_regression_k1, error_y_hat_regression_k7)).T.round(3),
+                       columns=solution_dataframe_columns)
+print(tabulate(new_df3.head(10), headers = ['y_cls', 'cls_k1', 'cls_k5', 'error_cls_k1', 'error_cls_k5',
+                                   'y_reg', 'reg_k1', 'reg_k7', 'error_reg_k1', 'error_reg_k7'], tablefmt = 'psql'))
