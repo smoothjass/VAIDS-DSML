@@ -265,6 +265,10 @@ some questions to think about:
     - checkout the error for k = 1 on classification an regression?
         is the result meaningful?
         if there is anything special - why, what happened in the algorithm?
+        
+        i believe it is not meaningful for the following reason: the dataset was not split into training and test
+        data, but instead the fitting and prediction are applied on the same data. So with k = 1 the "nearest neighbour"
+        will actually be the very same sample
 '''
 
 # predefined variables ------------------------
