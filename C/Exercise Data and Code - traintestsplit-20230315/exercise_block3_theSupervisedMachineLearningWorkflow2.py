@@ -102,7 +102,7 @@ questions to think about:
 
 # read the data ----------------------
 # -- pre coded --
-pth = r''
+pth = 'data_ex1ex3_waterquality.csv'
 df = pd.read_csv(pth, sep=";")
 
 # explore a little -------------------
@@ -112,6 +112,7 @@ df[["is_safe"]].groupby(["is_safe"]).size()
 
 # extract X,y arrays -----------------
 # -- student work --
+
 
 # scale data -------------------------
 # -- pre coded --
