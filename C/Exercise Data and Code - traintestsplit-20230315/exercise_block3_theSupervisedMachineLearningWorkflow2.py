@@ -32,6 +32,7 @@
 
 import pandas as pd
 import numpy as np
+import math
 from sklearn.model_selection import train_test_split, KFold, StratifiedShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
@@ -108,28 +109,77 @@ df = pd.read_csv(pth, sep=";")
 # explore a little -------------------
 # classes are unbalanced! (attribute is_safe = y)
 # -- pre coded --
-df[["is_safe"]].groupby(["is_safe"]).size()
+class_balancing = df[["is_safe"]].groupby(["is_safe"]).size()
 
 # extract X,y arrays -----------------
 # -- student work --
 
+y = df['is_safe'].to_numpy()
+df.drop(['is_safe'], inplace=True, axis=1)
+X = df.to_numpy()
 
 # scale data -------------------------
 # -- pre coded --
 mmSc = MinMaxScaler()
-X_scale = mmSc.fit_transform(X)
+X = mmSc.fit_transform(X)
 
 # perform holdout validation without shuffle and stratify -------
 # use k settings 1,2,3,...7
 # -- student work --
 
+# split without shuffle
+X_train, X_test, y_train, y_test = train_test_split(X, y,
+                                                    test_size=0.2,
+                                                    shuffle=False)
+results_without_shuffle = []
+
+for i in range(1, 8):
+    _i_nn_cls = KNeighborsClassifier(i)
+
+    _i_nn_cls = _i_nn_cls.fit(X_train, y_train)
+    y_hat = _i_nn_cls.predict(X_test)
+
+    accuracy = np.round(accuracy_score(y_test, y_hat), 3)
+    balanced_accuracy = np.round(balanced_accuracy_score(y_test, y_hat), 3)
+
+    y_hat_proba = _i_nn_cls.predict_proba(X_test)
+    roc_auc = roc_auc_score(y_test, y_hat_proba[:,1])
+
+    results_dict = {"k": i, "accuracy": accuracy, "balanced_accuracy": balanced_accuracy, "roc_auc": roc_auc,
+                    "shuffle": False}
+    results_without_shuffle.append(results_dict)
+
 # perform holdout validation WITH shuffle but NO stratify -----
 # again, use k settings 1,2,3,...7
 # -- student work --
 
+# split without shuffle
+X_train, X_test, y_train, y_test = train_test_split(X, y,
+                                                    test_size=0.2,
+                                                    shuffle=True,
+                                                    random_state=42)
+results_with_shuffle = []
+
+for i in range(1, 8):
+    _i_nn_cls = KNeighborsClassifier(i)
+
+    _i_nn_cls = _i_nn_cls.fit(X_train, y_train)
+    y_hat = _i_nn_cls.predict(X_test)
+
+    accuracy = np.round(accuracy_score(y_test, y_hat), 3)
+    balanced_accuracy = np.round(balanced_accuracy_score(y_test, y_hat), 3)
+
+    y_hat_proba = _i_nn_cls.predict_proba(X_test)
+    roc_auc = roc_auc_score(y_test, y_hat_proba[:,1])
+
+    results_dict = {"k": i, "accuracy": accuracy, "balanced_accuracy": balanced_accuracy, "roc_auc": roc_auc,
+                    "shuffle": True}
+    results_with_shuffle.append(results_dict)
+
 # build the dataframe
 # -- student work --
-
+all_results = results_without_shuffle + results_with_shuffle
+new_df1 = pd.DataFrame(all_results, columns=['k', 'accuracy', 'balanced_accuracy', 'roc_auc', 'shuffle'])
 
 ########################################################################################################################
 # PART 2 X-VAL
@@ -180,6 +230,7 @@ questions to think about:
 
 # read the data ----------------------
 # -- precoded --
+pth = 'data_ex2_mosquitoIndicator.csv'
 df = pd.read_csv(pth, sep=",")
 df[["year", "month", "day"]] = df["date"].str.split("-", expand=True)
 df[["year", "month"]] = df[["year", "month"]].astype(int)
@@ -189,11 +240,16 @@ df.drop(["date", "day"], axis=1, inplace=True)
 # -- student work --
 # X = ...
 # y = ...
+y = df['mosquito_Indicator'].to_numpy()
+df.drop(['mosquito_Indicator'], inplace=True, axis=1)
+X = df.to_numpy()
+
 
 # scale data -------------------------
 # -- precoded --
 mmSc = MinMaxScaler()
-X_scale = mmSc.fit_transform(X)
+X = mmSc.fit_transform(X)
+
 
 # perform cross validation with 5 folds ----
 # -- students work --
@@ -206,11 +262,18 @@ for k in np.arange(1, 8, 1):
     collector_rmse = []
     collector_medae = []
 
-    for train_idx, test_idx in kf.split(X_scale, y):
+    for train_idx, test_idx in kf.split(X, y):
+        X_train = X[train_idx]
+        X_test = X[test_idx]
+        y_train = y[train_idx]
+        y_test = y[test_idx]
 
-    # ...
-    # ...
-    # ...
+        knn.fit(X_train, y_train)
+        y_hat = knn.predict(X_test)
+
+        collector_mae.append(mean_absolute_error(y_test, y_hat))
+        collector_rmse.append(math.sqrt(mean_squared_error(y_test, y_hat)))
+        collector_medae.append(median_absolute_error(y_test, y_hat))
 
     collector.append({"k": k,
                       "mae": np.mean(collector_mae),
@@ -219,6 +282,8 @@ for k in np.arange(1, 8, 1):
 
 # build DataFrame and return ----------
 # -- students work --
+
+new_df2 = pd.DataFrame(collector, columns=['k', 'mae', 'rmse', 'medae'])
 
 
 ########################################################################################################################
@@ -272,9 +337,9 @@ questions to think about:
     - whats the difference (numerically) between ass/bacc and bsc?
     - is there any difference in interpretation?
 '''
-
 # read the data ----------------------
 # -- pre coded --
+pth = 'data_ex1ex3_waterquality.csv'
 df = pd.read_csv(pth, sep=";")
 
 # explore a little -------------------
@@ -286,19 +351,20 @@ df[["is_safe"]].groupby(["is_safe"]).size()
 # -- student work --
 #X = ...
 #y = ...
+y = df['is_safe'].to_numpy()
+df.drop(['is_safe'], inplace=True, axis=1)
+X = df.to_numpy()
 
 # scale data -------------------------
 # -- pre coded --
 mmSc = MinMaxScaler()
-X_scale = mmSc.fit_transform(X)
+X = mmSc.fit_transform(X)
 
 # monte carlo cross validation -------
 # use k-settings 1,2,3,...7
 # -- student work --
-
-# ...
-# ...
-# ...
+sss = StratifiedShuffleSplit(n_splits=5, test_size=0.5, random_state=0)
+collector = []
 
 for k in np.arange(1,8,1):
 
@@ -307,13 +373,26 @@ for k in np.arange(1,8,1):
     collector_bacc = []
     collector_bsc = []
 
-    for train_idx, test_idx in # ...
+    for train_idx, test_idx in sss.split(X, y):
+        X_train = X[train_idx]
+        X_test = X[test_idx]
+        y_train = y[train_idx]
+        y_test = y[test_idx]
 
-# ...
-# ...
+        knn.fit(X_train, y_train)
+        y_hat = knn.predict(X_test)
+        y_hat_proba = knn.predict_proba(X_test)
+
+        collector_acc.append(accuracy_score(y_test, y_hat))
+        collector_bacc.append(balanced_accuracy_score(y_test, y_hat))
+        collector_bsc.append(brier_score_loss(y_test, y_hat_proba[:,1]))
+
+    collector.append({"k": k,
+                      "acc": np.round(np.mean(collector_acc), 3),
+                      "bacc": np.round(np.mean(collector_bacc), 3),
+                      "bsc": np.round(np.mean(collector_bsc), 3)})
 
 # build and return the DataFrame
 # -- student work --
 
-
-
+new_df3 = pd.DataFrame(collector, columns=['k', 'acc', 'bacc', 'bsc'])
