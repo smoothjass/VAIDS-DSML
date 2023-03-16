@@ -136,6 +136,7 @@ results_without_shuffle = []
 for i in range(1, 8):
     _i_nn_cls = KNeighborsClassifier(i)
 
+    #i think i could do the fitting outside of the loop, because we don't do cross validation here yet
     _i_nn_cls = _i_nn_cls.fit(X_train, y_train)
     y_hat = _i_nn_cls.predict(X_test)
 
@@ -363,7 +364,9 @@ X = mmSc.fit_transform(X)
 # monte carlo cross validation -------
 # use k-settings 1,2,3,...7
 # -- student work --
-sss = StratifiedShuffleSplit(n_splits=5, test_size=0.5, random_state=0)
+
+#should I have done this in the for-loop? >> answer: no
+sss = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
 collector = []
 
 for k in np.arange(1,8,1):
