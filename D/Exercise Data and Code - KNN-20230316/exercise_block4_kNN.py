@@ -24,7 +24,6 @@
 - this is due to the fact that some parts are missing, and you should fill them in
 '''
 
-
 ########################################################################################################################
 # IMPORTS
 ########################################################################################################################
@@ -33,7 +32,6 @@
 import pandas as pd
 import numpy as np
 import os
-
 
 ########################################################################################################################
 # PART 1 // IMPLEMENT kNN
@@ -84,9 +82,37 @@ import os
     '''
 
 
+def knn_classifier(X_train, y_train, X_test, y_test, k):
+    output = pd.DataFrame(columns=['yhat', 'mndist', 'idx'])
+    for j in range(len(X_test)):
+        neighbor_collector = []
+        manhattan_dist = abs(X_test[j][0] - X_train[0][0]) + \
+                         abs(X_test[j][1] - X_train[0][1]) + \
+                         abs(X_test[j][2] - X_train[0][2]) + \
+                         abs(X_test[j][3] - X_train[0][3])
+        neighbor_collector.insert(0, [0, manhattan_dist])
+        for i in range(1, len(X_train)):
+            manhattan_dist = abs(X_test[j][0] - X_train[i][0]) + \
+                             abs(X_test[j][1] - X_train[i][1]) + \
+                             abs(X_test[j][2] - X_train[i][2]) + \
+                             abs(X_test[j][3] - X_train[i][3])
+            if manhattan_dist < neighbor_collector[0][1]:
+                neighbor_collector.insert(0, [i, manhattan_dist])
+        class_zero = class_one = 0
+        '''
+        for n in range(5):
+            if X_train[neighbor_collector[n]['idx']] == 0:
+                ++class_zero
+            else:
+                ++class_one
+'''
+    print(neighbor_collector)
+    return output
+
+
 # read data --------------------------------------------
 # -- precoded --
-pth = r''
+pth = 'data_part1_banknote.txt'
 cols = ["wavelet_var", "skew_wavelet", "curtos_wavelet", "entropy_img", "class"]
 df = pd.read_csv(pth, sep=',', header=None, names=cols)
 
@@ -109,8 +135,7 @@ tps = np.array([[0.100, 5.512, -0.327, 1.001],
 # select X,y
 X_sample = df.iloc[:, 0:4].values
 y_sample = df.iloc[:, 4].values
+knn_classifier(X_sample, y_sample, tps, [], 5)
 
 # knn ---------------------------------------------------------------------
 # -- student work --
-
-
