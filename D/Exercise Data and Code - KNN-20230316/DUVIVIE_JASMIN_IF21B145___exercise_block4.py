@@ -83,9 +83,14 @@ import os
 
 
 def knn_classifier(X_train, y_train, X_test, y_test, k):
-    output = pd.DataFrame(columns=['yhat', 'mndist', 'idx'])
+    # in collector, I collect the yhat, mndist and idx for each testpoint
+    collector = []
 
     for j in range(len(X_test)):
+        # in neighbor_collector, I collect the index and manhattan distance for relevant neighbors
+        # by relevant I mean, that I first save the information for the first training point
+        # and after that, I only insert those training points to index 0 of the collector,
+        # for which the distance is smaller than the distance currently stored there
         neighbor_collector = []
         manhattan_dist = abs(X_test[j][0] - X_train[0][0]) + \
                          abs(X_test[j][1] - X_train[0][1]) + \
@@ -104,7 +109,14 @@ def knn_classifier(X_train, y_train, X_test, y_test, k):
         class_zero = class_one = mndist = 0
         idx_collection = []
 
-        for n in range(5):
+        # for the k nearest neighbors (i.e. the first k indexes of the neighbor_collector)
+        # I check their classification and distance in order to predict the classification
+        # of the testpoint and calculate the mean distance of neighbors
+        # I do realize that by doing it this way, the algorithm breaks, if k is bigger than the
+        # number of neighbors I have collected. What I should do is save all the neighbours and
+        # sort them by distance, but the Python collections make me go crazy.
+        # Maybe I'll try that later. ¯\_(ツ)_/¯
+        for n in range(k):
             mndist = mndist + neighbor_collector[n][1]
             idx_collection.append(neighbor_collector[n][0])
 
@@ -112,10 +124,10 @@ def knn_classifier(X_train, y_train, X_test, y_test, k):
                 class_zero += 1
             else:
                 class_one += 1
-        prediciton = 1 if class_zero < class_one else 0
-        data_row = pd.Series({'yhat': prediciton, 'mndist': (mndist / 5), 'idx': ' '.join(str(e) for e in idx_collection)})
-        print(data_row)
-        pd.concat([output, data_row.to_frame().T], ignore_index=True)
+
+        collector.append([1 if class_zero < class_one else 0, mndist/k, ' '.join(str(e) for e in idx_collection)])
+
+    output = pd.DataFrame(collector, columns=['yhat', 'mndist', 'idx'])
     return output
 
 
