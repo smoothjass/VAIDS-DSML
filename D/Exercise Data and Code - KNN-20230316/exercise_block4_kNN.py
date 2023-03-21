@@ -84,6 +84,7 @@ import os
 
 def knn_classifier(X_train, y_train, X_test, y_test, k):
     output = pd.DataFrame(columns=['yhat', 'mndist', 'idx'])
+
     for j in range(len(X_test)):
         neighbor_collector = []
         manhattan_dist = abs(X_test[j][0] - X_train[0][0]) + \
@@ -91,6 +92,7 @@ def knn_classifier(X_train, y_train, X_test, y_test, k):
                          abs(X_test[j][2] - X_train[0][2]) + \
                          abs(X_test[j][3] - X_train[0][3])
         neighbor_collector.insert(0, [0, manhattan_dist])
+
         for i in range(1, len(X_train)):
             manhattan_dist = abs(X_test[j][0] - X_train[i][0]) + \
                              abs(X_test[j][1] - X_train[i][1]) + \
@@ -98,15 +100,22 @@ def knn_classifier(X_train, y_train, X_test, y_test, k):
                              abs(X_test[j][3] - X_train[i][3])
             if manhattan_dist < neighbor_collector[0][1]:
                 neighbor_collector.insert(0, [i, manhattan_dist])
-        class_zero = class_one = 0
-        '''
+
+        class_zero = class_one = mndist = 0
+        idx_collection = []
+
         for n in range(5):
-            if X_train[neighbor_collector[n]['idx']] == 0:
-                ++class_zero
+            mndist = mndist + neighbor_collector[n][1]
+            idx_collection.append(neighbor_collector[n][0])
+
+            if y_train[neighbor_collector[n][0]] == 0:
+                class_zero += 1
             else:
-                ++class_one
-'''
-    print(neighbor_collector)
+                class_one += 1
+        prediciton = 1 if class_zero < class_one else 0
+        data_row = pd.Series({'yhat': prediciton, 'mndist': (mndist / 5), 'idx': ' '.join(str(e) for e in idx_collection)})
+        print(data_row)
+        pd.concat([output, data_row.to_frame().T], ignore_index=True)
     return output
 
 
@@ -135,7 +144,7 @@ tps = np.array([[0.100, 5.512, -0.327, 1.001],
 # select X,y
 X_sample = df.iloc[:, 0:4].values
 y_sample = df.iloc[:, 4].values
-knn_classifier(X_sample, y_sample, tps, [], 5)
+result = knn_classifier(X_sample, y_sample, tps, [], 5)
 
 # knn ---------------------------------------------------------------------
 # -- student work --
