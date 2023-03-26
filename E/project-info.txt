@@ -1,0 +1,9 @@
+for the projects:
+
+build a group
+choose any big dataset (min 1000 samples, min 10 features)
+predict something
+	-> not relevant for the grading: how good the prediction is
+	-> relevant for the grading: the process
+
+pitch: present something very quickly and make your point
