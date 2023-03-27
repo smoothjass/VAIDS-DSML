@@ -1,4 +1,13 @@
 ########################################################################################################################
+# SOURCE OF DATA
+"""
+Gyódi, Kristóf, & Nawaro, Łukasz. (2021).
+Determinants of Airbnb prices in European cities:
+A spatial econometrics approach (Supplementary Material)
+[Data set]. Zenodo. https://doi.org/10.5281/zenodo.4446043
+"""
+
+########################################################################################################################
 # IMPORTS
 import pandas as pd
 from math import pi
@@ -7,7 +16,7 @@ from bokeh.models import LinearAxis
 from bokeh.palettes import Category20c
 from bokeh.plotting import figure, show
 from bokeh.transform import cumsum
-from bokeh.layouts import row
+from bokeh.layouts import row, layout
 
 ########################################################################################################################
 # ARRANGE DFS
@@ -134,25 +143,26 @@ data = pd.Series(x).reset_index(name='value').rename(columns={'index': 'country'
 data['angle'] = data['value'] / data['value'].sum() * 2 * pi
 data['color'] = Category20c[len(x)]
 
-plot1 = figure(height=400, title="airbnbs per city", toolbar_location=None,
-               tools="hover", tooltips="@country: @value", x_range=(-0.5, 1.0))
+plot1 = figure(height=400, title='airbnbs per city', toolbar_location=None,
+               tools='hover', tooltips='@country: @value', x_range=(-0.5, 1.0))
 
 plot1.wedge(x=0, y=1, radius=0.4,
             start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
-            line_color="white", fill_color='color', legend_field='country', source=data)
+            line_color='white', fill_color='color', legend_field='country', source=data)
 
 plot1.axis.axis_label = None
 plot1.axis.visible = False
 plot1.grid.grid_line_color = None
 
+plot1.margin = 10
 ########################################################################################################################
 # SCATTER PLOT CLEANLINESS - SATISFACTION
 plot2 = figure(width=400, height=400)
 # add a circle renderer with a size, color, and alpha
-plot2.circle(vienna['cleanliness_rating'], vienna['guest_satisfaction_overall'], size=2, color="navy", alpha=0.5)
-plot2.xaxis.axis_label = "cleanliness"
-plot2.yaxis.axis_label = "guest satisfaction"
-
+plot2.circle(all_cities['cleanliness_rating'], all_cities['guest_satisfaction_overall'], size=2, color='navy', alpha=0.5)
+plot2.xaxis.axis_label = 'cleanliness'
+plot2.yaxis.axis_label = 'guest satisfaction'
+plot2.margin = 10
 ########################################################################################################################
 # SCATTER PLOT CITY - PRICE MEAN & MODE
 cities = ['Amsterdam', 'Athens', 'Barcelona',
@@ -181,12 +191,27 @@ prices_mode = [amsterdam.loc[:, 'realSum'].mode()[0],
 
 plot3 = figure(x_range=cities, height=400)
 # add a circle renderer with a size, color, and alpha
-plot3.circle(pd.Series(cities), pd.Series(prices_mean), size=20, color="navy", alpha=0.5, legend_label="mean")
-plot3.circle(pd.Series(cities), pd.Series(prices_mode), size=20, color="red", alpha=0.5, legend_label="mode")
-plot3.xaxis.axis_label = "city"
-plot3.legend.location = "top_right"
+plot3.circle(pd.Series(cities), pd.Series(prices_mean), size=20, color='navy', alpha=0.5, legend_label='mean')
+plot3.circle(pd.Series(cities), pd.Series(prices_mode), size=20, color='red', alpha=0.5, legend_label='mode')
+plot3.xaxis.axis_label = 'city'
+plot3.yaxis.axis_label = 'price (EUR)'
+plot3.legend.location = 'top_right'
 plot3.legend.border_line_width = 3
-plot3.legend.border_line_color = "black"
+plot3.legend.border_line_color = 'black'
+plot3.margin = 10
+########################################################################################################################
+# SCATTER PLOT CITY - PRICES
+plot4 = figure(width=800, height=800)
+plot4.circle(all_cities['dist'], all_cities['realSum'],
+             size=2, color='navy', alpha=0.5, legend_label='distance to city center')
+plot4.circle(all_cities['metro_dist'], all_cities['realSum'],
+             size=2, color='red', alpha=0.5, legend_label='distance to metro')
+plot4.yaxis.axis_label = 'price (EUR)'
+plot4.xaxis.axis_label = 'distance (km)'
+plot4.legend.location = 'top_right'
+plot4.legend.border_line_width = 3
+plot4.legend.border_line_color = 'black'
+plot4.margin = 10
 
 # show the results
-show(row(plot1, plot2, plot3))
+show(layout([plot1, plot3, plot2], [plot4]))
