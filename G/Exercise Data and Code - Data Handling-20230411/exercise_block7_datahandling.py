@@ -44,7 +44,7 @@ the dataset includes all kinds of errors
 (6) group magnesium by color and calculate statistics within groups
     - use the groupby() method
 '''
-
+import numpy as np
 
 ########################################################################################################################
 # Solution
@@ -70,8 +70,7 @@ pd.set_option('display.max_colwidth', None)
 '''
 start by just loading the data
 '''
-
-
+df = pd.read_csv('wine_exercise.csv', sep=';')
 
 # ----------------------------------------------------------------------------------------------------------------------
 # >>> step 2, use skip rows
@@ -79,8 +78,7 @@ start by just loading the data
 '''
 skip row to ignore text inside the file
 '''
-
-
+df = pd.read_csv('wine_exercise.csv', sep=';', skiprows=1)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # >>> step 3, use skipfooter
@@ -88,8 +86,8 @@ skip row to ignore text inside the file
 '''
 the footer is also a problem, skip it with skipfooter
 '''
-
-
+df = pd.read_csv('wine_exercise.csv', sep=';', skiprows=1, skipfooter=1, engine='python')
+df.info()
 # ----------------------------------------------------------------------------------------------------------------------
 # >>> step 4, check na, data types
 # ----------------------------------------------------------------------------------------------------------------------
@@ -98,7 +96,11 @@ now the df looks fine, but is it really?
 only 3 attributes should be categorical but many are, invesigate those
 you'll need to set pandas options to see all issues
 '''
-
+'''
+- i guess by 'categorical' they don't mean the actual dtype category because actually none of these attributes is 
+displayed as a category with df.info() but many are object when they should be float or something else
+- i have read up on some options but i don't understand how i should set them, which ones i should set, i'm confused
+'''
 
 # ----------------------------------------------------------------------------------------------------------------------
 # >>> step 5 try to convert data types to find issues
@@ -107,8 +109,8 @@ you'll need to set pandas options to see all issues
 hint: rows 50, 51, 142 are problematic due to mixed/wrong separators or wrong commas
 How could you find such issues in an automated way?
 '''
-
-
+#df = pd.read_csv('wine_exercise.csv', sep=';', skiprows=1, skipfooter=1, engine='python')
+#df.astype({'alcohol': 'float64'}).dtypes
 
 # ----------------------------------------------------------------------------------------------------------------------
 # >>> step 6, exclude the three problematic rows
@@ -117,7 +119,11 @@ How could you find such issues in an automated way?
 the three rows are completely ruined and can only be fixed in isolation
 you can read the dataset an skip these rows
 '''
-
+#and also 166 because there is a white space instead of a ';' as a separator
+df = pd.read_csv('wine_exercise.csv', sep=';', decimal='.', skiprows=[0, 52, 53, 144, 168], skipfooter=1, engine='python',
+                 na_values='missing')
+df.astype({'alcohol': 'float64', 'ash': 'float64'}).dtypes
+df.info()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 7, handle rows separately
@@ -173,7 +179,10 @@ now you can look at unique values of categorical attributes using e.g. value_cou
 this way you'll find problematic values that need recoding (e.g. AUT to AUTUMN)
 Here you can also check if there is a column in which two columns are combined and split it
 '''
-
+print(df['season'].value_counts())
+df.replace('spring', 'SPRING', inplace=True)
+df.replace('aut', 'AUTUMN', inplace=True)
+print(df['season'].value_counts())
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 9, check split columns
