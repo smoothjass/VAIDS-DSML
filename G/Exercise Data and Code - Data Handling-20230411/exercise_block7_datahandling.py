@@ -111,6 +111,7 @@ How could you find such issues in an automated way?
 '''
 #df = pd.read_csv('wine_exercise.csv', sep=';', skiprows=1, skipfooter=1, engine='python')
 #df.astype({'alcohol': 'float64'}).dtypes
+#TODO automate
 
 # ----------------------------------------------------------------------------------------------------------------------
 # >>> step 6, exclude the three problematic rows
@@ -138,6 +139,7 @@ Otherwise you can follow the workflow indicated below (steps 7.1, 7.2, 7.3, 7.4)
 '''
 get column names so you can assign them to the single rows you did read
 '''
+columns = df.columns.values.tolist()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 7.2, handle row 52
@@ -145,7 +147,8 @@ get column names so you can assign them to the single rows you did read
 read only row 52 and repair it in isolation
 write it to disk wit correct separators, decimals
 '''
-
+row = pd.read_csv('wine_exercise.csv', sep=",", skiprows = lambda x: x not in [52], names=columns)
+string = row.to_csv(index=0, header=None, sep=";").strip('\n').split('\n')
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 7.3, handle row 53
