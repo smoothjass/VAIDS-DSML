@@ -50,6 +50,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import KNNImputer
 from sklearn.datasets import load_wine
+from scipy.stats import norm
 
 ########################################################################################################################
 # Solution
@@ -306,5 +307,5 @@ get the class distribution of the target variable
 '''
 class_balancing = df[["target"]].groupby(["target"]).size()
 
-# maybe 7 repair broken lines
-# TODO (3) magnesium (6) magnesium
+# optional 7 repair broken lines
+# (3) magnesium (6) magnesium, i'm confused?
