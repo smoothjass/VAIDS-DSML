@@ -306,4 +306,5 @@ get the class distribution of the target variable
 '''
 class_balancing = df[["target"]].groupby(["target"]).size()
 
-# maybe 7
+# maybe 7 repair broken lines
+# TODO (3) magnesium (6) magnesium
