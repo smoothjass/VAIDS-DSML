@@ -51,6 +51,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import KNNImputer
 from sklearn.datasets import load_wine
 from scipy.stats import norm
+from io import StringIO
 
 ########################################################################################################################
 # Solution
@@ -67,6 +68,10 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
+
+'''
+I put lots of statements in comments so i don't read messed up dfs all the time
+'''
 
 # ----------------------------------------------------------------------------------------------------------------------
 # >>> step 1, just try it
@@ -123,7 +128,7 @@ How could you find such issues in an automated way?
 # or automatically
 '''
 This just checks if commas or white spaces are found. this could be improved by looking for a list of
-wanted or unwanted separators but I am lazy.
+wanted or unwanted separators.
 '''
 file = open('wine_exercise.csv', 'r')
 counter = 0
@@ -157,6 +162,7 @@ you can read the dataset an skip these rows
 If this is too much data dirt for you continue without handling these three rows (continue with step 8)
 Otherwise you can follow the workflow indicated below (steps 7.1, 7.2, 7.3, 7.4)
 '''
+# i'd like to do that but i might be running out of time
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 7.1, first get the column names from the df
@@ -171,13 +177,22 @@ columns = df.columns.values.tolist()
 read only row 52 and repair it in isolation
 write it to disk wit correct separators, decimals
 '''
-
+# correct sep
+repair_lines[1] = repair_lines[1].replace(",", ";")
+csvStringIO = StringIO(repair_lines[1])
+repaired = pd.read_csv(csvStringIO, sep=";", header=None, names=columns)
+df = pd.concat([df, repaired], ignore_index=True)
 # ----------------------------------------------------------------------------------------------------------------------
 # step 7.3, handle row 53
 '''
 read only row 53 and repair it in isolation
 write it to disk wit correct separators, decimals
 '''
+# correct dec
+repair_lines[2] = repair_lines[2].replace(",", ".")
+csvStringIO = StringIO(repair_lines[2])
+repaired = pd.read_csv(csvStringIO, sep=";", header=None, names=columns)
+df = pd.concat([df, repaired], ignore_index=True)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 7.4, handle row 144
@@ -185,7 +200,18 @@ write it to disk wit correct separators, decimals
 read only row 144 and repair it in isolation
 write it to disk wit correct separators, decimals
 '''
+# correct sep
+repair_lines[3] = repair_lines[3].replace(",", ";")
+csvStringIO = StringIO(repair_lines[3])
+repaired = pd.read_csv(csvStringIO, sep=";", header=None, names=columns)
+df = pd.concat([df, repaired], ignore_index=True)
 
+# correct sep
+repair_lines[4] = repair_lines[4].replace(" ", ";")
+repair_lines[4] = repair_lines[4].replace(";;", ";")
+csvStringIO = StringIO(repair_lines[4])
+repaired = pd.read_csv(csvStringIO, sep=";", header=None, names=columns)
+df = pd.concat([df, repaired], ignore_index=True)
 # ----------------------------------------------------------------------------------------------------------------------
 # step 8, re-read and check dtypes again to find errors
 # ----------------------------------------------------------------------------------------------------------------------
@@ -203,13 +229,16 @@ now you can look at unique values of categorical attributes using e.g. value_cou
 this way you'll find problematic values that need recoding (e.g. AUT to AUTUMN)
 Here you can also check if there is a column in which two columns are combined and split it
 '''
+
+# fix wrong season labels
 # print(df['season'].value_counts())
 df.replace('spring', 'SPRING', inplace=True)
 df.replace('aut', 'AUTUMN', inplace=True)
 # print(df['season'].value_counts())
 
 # print(df['color'].value_counts())
-# if there are only two colors, do i need to split the column to is_1 or is_0 or do i leave it that way?
+# if there are only two colors, do I need to split the column to is_1 or is_0 or do I leave it that way?
+# I think it's ok to leave it that way, binary discrete values seem pretty straight forward
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 9, check split columns
@@ -217,9 +246,13 @@ df.replace('aut', 'AUTUMN', inplace=True)
 '''
 data type changes might be needed for split columns
 '''
+# split at '-' and put into new columns
 df[['country', 'years-old']] = df.loc[:, 'country-age'].str.split("-", expand=True)
+# remove 'years' suffix from every years-old cell
 df['years-old'] = df.loc[:, 'years-old'].str.replace("years", "")
+# drop old column
 df.drop('country-age', axis=1, inplace=True)
+# convert years-old column to int
 df['years-old'] = df['years-old'].astype('int')
 
 # df.info()
@@ -236,17 +269,23 @@ try to use plots to find outliers "visually"
 you can also try to use statistical measures to automatically exclude problematic values but be careful
 '''
 
+# get column names of numerical columns
 columns = df.select_dtypes(include=np.number).columns.values.tolist()
+# no need to plot the target
 columns.remove("target")
 
+# scale values, so they can be plotted in one figure meaningfully
 scaler = MinMaxScaler()
 df[columns] = scaler.fit_transform(df[columns])
 
+# plot
 boxplot = df.boxplot(column=columns)
 plt.xticks(rotation=-90)
 plt.subplots_adjust(bottom=0.4)
 plt.show()
+
 '''
+# plotted each column separately at first but that's kind of chaotic in the SciView
 for label in columns:
     boxplot = df.boxplot(column=label)
     plt.show()
@@ -265,6 +304,8 @@ these have some outliers but don't look too weird, i'd say:
     color_intensity
     hue
 '''
+
+# look at the suspicious ones again
 boxplot = df.boxplot(column=['malic_acid'])
 plt.show()
 boxplot = df.boxplot(column=['total_phenols'])
@@ -280,13 +321,23 @@ plt.show()
 # it also says in the instructions that the proline nan values are to be considered
 df['proline'] = df.loc[:, 'proline'].replace(0, np.nan)
 
-# total_phenols: two values (163, 164) seem to have the comma in the wrong place
+# total_phenols: two values (indices 163, 164) seem to be missing a comma (values above 100 instead of roughly 1)
+# (typing error?)
 # inverse scaling to find wrong phenols
 df[columns] = scaler.inverse_transform(df[columns])
 # find the wrong phenols
 fix_phenols = df.query('total_phenols > 100')
 # replace in old df with scaled values
 df.loc[df.total_phenols.isin(fix_phenols.total_phenols), ['total_phenols']] = fix_phenols[['total_phenols']] / 100
+# or replace with nan to later impute them
+# df.loc[df.total_phenols.isin(fix_phenols.total_phenols), ['total_phenols']] = np.nan
+# plot again
+boxplot = df.boxplot(column=['total_phenols'])
+plt.show()
+# much better
+
+# magnesium ?
+# am confused, statistics.
 
 # ----------------------------------------------------------------------------------------------------------------------
 # step 12, impute values
@@ -307,5 +358,8 @@ get the class distribution of the target variable
 '''
 class_balancing = df[["target"]].groupby(["target"]).size()
 
-# optional 7 repair broken lines
-# (3) magnesium (6) magnesium, i'm confused?
+# magnesium group by color
+magnesium_color = df.groupby('color')['magnesium'].agg(['mean', 'median', 'min', 'max'])
+# group by color and calculates min, max, median and mean on the magnesium column
+
+# (3) magnesium, i'm confused?
