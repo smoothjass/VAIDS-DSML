@@ -345,6 +345,8 @@ plt.show()
 '''
 impute missing values and excluded values using the KNN-Imputer
 '''
+# you should scale before imputing
+
 original = load_wine()
 # print(original['feature_names'])
 imputer = KNNImputer(n_neighbors=5)
