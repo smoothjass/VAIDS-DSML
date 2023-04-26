@@ -89,7 +89,7 @@ import numpy as np
 # read the data ----------------------------------
 # -- precoded --
 cols = ["pelvic_incidence", "pelvic_tilt", "lumbar_lordosis_angle", "sacral_slope", "pelvic_radius",
-        "degree_spondylolisthesis", "class"
+        "degree_spondylolisthesis", "target"
         ]
 pth = 'data_ex1_vertebral_column_3C.dat'
 df = pd.read_csv(pth, sep=' ', header=None, names=cols)
@@ -99,7 +99,7 @@ df = pd.read_csv(pth, sep=' ', header=None, names=cols)
 # -- student work --
 
 def calculate_entropy(partition):
-    classes = partition[['class']].groupby(['class']).size()
+    classes = partition[['target']].groupby(['target']).size()
     total = 0
     entropy = 0.0
     for i in range(len(classes)):
@@ -116,6 +116,8 @@ def calculate_information_gain(h_parent, h_left, h_right, n, n_left, n_right):
     return np.round(information_gain, 6)
 
 
+# visualize(df)
+
 # calculate entropy of the dataframe, because we only construct the stump
 h_parent = calculate_entropy(df)
 
@@ -123,7 +125,7 @@ h_parent = calculate_entropy(df)
 # - sort
 # - calculate entropy and information gain for each value
 # - keep results in collector
-cols.remove("class")
+cols.remove("target")
 collector = []
 for feature in cols:
     df.sort_values(feature, inplace=True)
