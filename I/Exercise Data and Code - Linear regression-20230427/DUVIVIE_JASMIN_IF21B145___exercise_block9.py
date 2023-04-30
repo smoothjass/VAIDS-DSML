@@ -104,10 +104,10 @@ X = np.hstack(X)
 # configure figsize so the plot doesn't seem so crowded
 plt.figure(figsize=(20, 15))
 
-# plot y_hat (the i in tuple (i, j)
-plt.plot(X, [i for (i, j) in tuples], 'rx', markersize = 7)
 # plot y (the j in tuple (i, j)
 plt.plot(X, [j for (i, j) in tuples], 'bo', markersize = 7)
+# plot y_hat (the i in tuple (i, j)
+plt.plot(X, [i for (i, j) in tuples], 'rx', markersize = 7)
 # plot green lines between y_hat and y
 plt.plot((X, X), ([i for (i, j) in tuples], [j for (i, j) in tuples]), c='green')
 
@@ -162,8 +162,8 @@ mse_man = mean_squared_error(y, y_hat_man)
 tuples = list(zip(y_hat_man, y))
 plt.figure(figsize=(20, 15))
 
-plt.plot(X, [i for (i, j) in tuples], 'rx', markersize=7)
 plt.plot(X, [j for (i, j) in tuples], 'bo', markersize=7)
+plt.plot(X, [i for (i, j) in tuples], 'rx', markersize=7)
 
 plt.xlabel('alcohol content')
 plt.ylabel('predicted/true quality')
