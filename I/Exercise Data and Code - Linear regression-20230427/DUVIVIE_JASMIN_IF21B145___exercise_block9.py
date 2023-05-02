@@ -1,7 +1,6 @@
 ########################################################################################################################
 # REMARKS
 ########################################################################################################################
-
 '''
 ## Coding
 - please note, this no SE course and much of the code in ML is more akin to executing workflows
@@ -25,24 +24,37 @@
 - this is due to the fact that some parts are missing, and you should fill them in
 '''
 
+
 ########################################################################################################################
 # IMPORTS
 ########################################################################################################################
 
+
 import pandas as pd
 import numpy as np
+from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression as lr
 from sklearn.metrics import mean_squared_error
-from sklearn.datasets import make_regression
-from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 ########################################################################################################################
 # IMPLEMENT AN OLS PARAMETER ESTIMATION FOR LINEAR REGRESSION USING ONLY NUMPY
 ########################################################################################################################
-
 '''
+In this exercise we want you to implement an optimizer for linear regression based on simple linear algebra operation
+PLease note: even if this might sound intimidating it is actually very simple!
+PLease also note: if you understand the optimizer we use here, you'll be able to solve quite some non-standard
+problems without libraries!
+AND
 In this exercise we want you to visualise and understand linear regression.
+
+Ordinary least squares:
+-----------------------
+- The optimizer we are talking about is the s.c. ORDINARY LEAST SQUARES optimizer/estimator (OLS for short)
+- As the name suggests, OLS minimizes the RSS (residual sum of squares, see also slides p9)
+- instead of taking derivatives this problem can also be solved computationally using matrix operations
+- this enables us to implement the procedure without caring about manual derivation or using a symbolic math package!
+- great, really great it is my friend :)
 
 data:
 -----
@@ -55,117 +67,145 @@ what you DONT need to care about:
 - missing data
 - categorical/binary features
 
+what you need to care about:
+----------------------------
+- performing OLS using only numpy!
+- the matrix representation of linear regression (multivariate and univariate)
+
+- checkout the following numpy documentation
+- https://numpy.org/doc/stable/reference/generated/numpy.matmul.html?highlight=matmul#numpy.matmul
+- https://numpy.org/doc/stable/reference/generated/numpy.linalg.inv.html?highlight=linalg%20inv#numpy.linalg.inv
+- https://numpy.org/doc/stable/reference/generated/numpy.ndarray.T.html
+
 output:
 -------
-- use sklearn.linear_model to predict quality based on alcohol content
+- just comparte the intercept/coefficients found using scikit learn and your own procedure
 - plot alcohol content vs the quality predictions with red x-symbols
 - plot alcohol content vs the true quality with blue filled circles
 - draw a green line between predicted qualities and true qualities to visualise the residuals (= Size of the error we made)
 - the result should look like this https://i.stack.imgur.com/zoYKG.png (But with different data!!)
 - then label the x-axis and y-axis
 - Calculate the Mean Squared Error (MSE)
+
+some help:
+----------
+- if you are very uncertain look at https://www.fsb.miamioh.edu/lij14/411_note_matrix.pdf
+- only slides 3,4,5 and 7 are relevant
+- on slide 5 equation (4) is most important, since it shows how to estimate beta (=the coefficients)
 '''
+
+def visualize(y, y_hat, X, title):
+    # visualise the residuals
+    # make tuples from y_hat and y
+    tuples = list(zip(y_hat, y))
+    # reshape X
+    X = np.hstack(X)
+    # configure figsize so the plot doesn't seem so crowded
+    plt.figure(figsize=(20, 15))
+
+    # plot y (the j in tuple (i, j)
+    plt.plot(X, [j for (i, j) in tuples], 'bo', markersize=7)
+    # plot y_hat (the i in tuple (i, j)
+    plt.plot(X, [i for (i, j) in tuples], 'rx', markersize=7)
+    # plot green lines between y_hat and y
+    plt.plot((X, X), ([i for (i, j) in tuples], [j for (i, j) in tuples]), c='green')
+
+    # label the axes
+    plt.xlabel('alcohol content')
+    plt.ylabel('predicted/true quality')
+    plt.title(title)
+    plt.show()
 
 # read the data --------------------------------------------------
 # -- predefined --
 pth = 'winequality-red.csv'
 df = pd.read_csv(pth, sep=";")
-
-X = df['alcohol'].values.reshape(-1, 1)
-y = df['quality'].values
-
+X = df.drop("quality", axis=1).values[:,10:11]
+y = df["quality"].values
 # generated linear distribution to test with, uncomment to try
 # X, y, coef = make_regression(n_samples=1000, n_features=1, n_informative=1, coef=True, noise=1, random_state=42)
+_1 = np.repeat(1, X.shape[0]).reshape((X.shape[0], 1)) # we need a vector of 1s to perform OLS using only linear algebra
+X1 = np.hstack([_1, X])
 
-'''
-# i've tried scaling out of curiosity but it doesn't change a thing. maybe it would for multi-linear regression? i don't
-# think so though
-# print(np.unique(y))
-scaler = MinMaxScaler()
-X = scaler.fit_transform(X)
-y = np.vstack(y)
-y = scaler.fit_transform(y)
-y = np.hstack(y)
-'''
+# scikit solution ------------------------------------------------
+# -- predefined --
+# this is just for you to check if your solution correct.
+# Using numpy should return the same result (except for rounding)
 
-# solution
 # fit the line to the data and predict the y values
-reg = lr().fit(X, y)
-y_hat = reg.predict(X)
+mod = lr()
+mod.fit(X, y)
+mod.coef_
+mod.intercept_
+y_hat = mod.predict(X)
 
 # calculate mean squared error
 mse = mean_squared_error(y, y_hat)
+visualize(y, y_hat, X, "sklearn")
 
-# visualise the residuals
-# make tuples from y_hat and y
-tuples = list(zip(y_hat, y))
-# reshape X
-X = np.hstack(X)
-# configure figsize so the plot doesn't seem so crowded
-plt.figure(figsize=(20, 15))
+# preform OLS estimation as described in the doc string ----------
+# -- students work --
+'''
+- the OLS estimation can be performed in 3 steps using only simple/basic linear algebra operations
+step by step:
+'''
 
-# plot y (the j in tuple (i, j)
-plt.plot(X, [j for (i, j) in tuples], 'bo', markersize = 7)
-# plot y_hat (the i in tuple (i, j)
-plt.plot(X, [i for (i, j) in tuples], 'rx', markersize = 7)
-# plot green lines between y_hat and y
-plt.plot((X, X), ([i for (i, j) in tuples], [j for (i, j) in tuples]), c='green')
+# calculate S1
+'''
+S1 = inverse(X1'*X1)
+- X1 is the matrix X (containing only the features values) with an additional 1-vector prepended in the first column
+1-vec| feat1 | feat2
+--------------------
+ 1  | 0.9 | 102
+ 1  | 1.2 | 908
+... | ... | ...
 
-# label the axes
-plt.xlabel('alcohol content')
-plt.ylabel('predicted/true quality')
+- X1' is the transpose of X1 ... look for matrix transpose in numpy and see what it does
+ 1  |  1  | ...
+0.9 | 1.2 | ...
+102 | 908 | ...
 
-plt.show()
+- * is matrix multiplication. Please note: this is NOT an element-wise multiplication, if you are uncertain please look
+    it up!
+- inverse() is the inverse of a matrix ... look how you can invert a matrix in numpy
+- info: inverse() is NOT the correct numpy function!
+- info: the inverse of a matrix returns the identity matrix when multiplied with the original matrix
+- info: This is roughly equivalent to 1/42 being the inverse of 42, but please don't forget that matrix multiplications
+    are specially defined functions
+'''
+X1T = X1.transpose()
+S1_temp = np.matmul(X1T, X1)
+S1 = np.linalg.inv(S1_temp)
+should_be_identity = np.matmul(S1, S1_temp)
 
-########################################################################################################################
-# TRIED TO FIT THE MODEL MANUALLY
-########################################################################################################################
+# calculate S2
+'''
+- S2 = X1'*y
+- again X1' is the transpose of X1
+- * is again matrix multiplication
+- info: y is a n*1 matrix, even scalars can be considered to be 1*1 matrices
+'''
+S2 = np.matmul(X1T, y)
 
-# set least_squares to infinity, so I can start comparing later
-least_squares = float('inf')
-# initialize best slope/intercept with any value, doesn't matter what
-best_slope = best_intercept = 0
+# calculate s3
+'''
+- S3 = S1*S2
+- * is again matrix multiplication
+- IMPORTANT: S3 is the result of the OLS estimation
+- this numpy array contains
+- at index 0 ... the intercept
+- at index 1 ... the coefficient of our only feature
+- info: the exact same procedure can be used for multivariate regression also!
+- for multivariate regressions indices 1 ... n would be the coefficients for our n features
+'''
+S3 = np.matmul(S1, S2)
 
-# make iterable arrays for slopes and intercepts to try (note accuracy/speed trade-off)
-# slower but more accurate
-slopes = np.arange(0, 20, 0.1)
-intercepts = np.arange(-2, 2, 0.01)
+# predict and visualize y_hat_man
+y_hat_mat = X * S3[1] + S3[0]
+y_hat_mat = np.hstack(y_hat_mat)
+visualize(y, y_hat_mat, X, "matrix multiplication")
 
-# faster but less accurate, comment next two lines to make it slower but more accurate
-slopes = np.arange(0, 20, 0.5)
-intercepts = np.arange(-5, 5, 0.1)
-
-# try combinations of slopes and intercepts
-for k in slopes:
-    print("k: " + str(k) + "\n")
-    for d in intercepts:
-        y_hat_man = k * X + d
-        # y_hat needs to be hstacked so that the sr calculation works correctly
-        y_hat_man = np.hstack(y_hat_man)
-        # calculate squared residuals
-        sr = (y_hat_man - y) ** 2
-        # calculate sum of squared residuals
-        ssr = np.sum(sr)
-        # if the new sum of squared residuals is smaller than the currently smallest value of least_squares, replace the
-        # least_squares with the new ssr and the currently best slope/intercept with the new slope/intercept
-        if ssr < least_squares:
-            least_squares = ssr
-            best_slope = k
-            best_intercept = d
-
-# predict y_hat with the slope and intercept that came out of the loop as the best fits
-y_hat_man = best_slope * X + best_intercept
 # calculate mean squared error
-mse_man = mean_squared_error(y, y_hat_man)
+mse_mat = mean_squared_error(y, y_hat)
 
-# same procedure as above
-tuples = list(zip(y_hat_man, y))
-plt.figure(figsize=(20, 15))
-
-plt.plot(X, [j for (i, j) in tuples], 'bo', markersize=7)
-plt.plot(X, [i for (i, j) in tuples], 'rx', markersize=7)
-
-plt.xlabel('alcohol content')
-plt.ylabel('predicted/true quality')
-
-plt.show()
+# compare results
