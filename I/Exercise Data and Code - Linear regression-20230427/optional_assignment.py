@@ -32,8 +32,10 @@
 
 import pandas as pd
 import numpy as np
+from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression as lr
-
+from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
 
 ########################################################################################################################
 # IMPLEMENT AN OLS PARAMETER ESTIMATION FOR LINEAR REGRESSION USING ONLY NUMPY
@@ -43,6 +45,8 @@ In this exercise we want you to implement an optimizer for linear regression bas
 PLease note: even if this might sound intimidating it is actually very simple!
 PLease also note: if you understand the optimizer we use here, you'll be able to solve quite some non-standard
 problems without libraries!
+AND
+In this exercise we want you to visualise and understand linear regression.
 
 Ordinary least squares:
 -----------------------
@@ -76,6 +80,12 @@ what you need to care about:
 output:
 -------
 - just comparte the intercept/coefficients found using scikit learn and your own procedure
+- plot alcohol content vs the quality predictions with red x-symbols
+- plot alcohol content vs the true quality with blue filled circles
+- draw a green line between predicted qualities and true qualities to visualise the residuals (= Size of the error we made)
+- the result should look like this https://i.stack.imgur.com/zoYKG.png (But with different data!!)
+- then label the x-axis and y-axis
+- Calculate the Mean Squared Error (MSE)
 
 some help:
 ----------
@@ -84,12 +94,36 @@ some help:
 - on slide 5 equation (4) is most important, since it shows how to estimate beta (=the coefficients)
 '''
 
+def visualize(y, y_hat, X, title):
+    # visualise the residuals
+    # make tuples from y_hat and y
+    tuples = list(zip(y_hat, y))
+    # reshape X
+    X = np.hstack(X)
+    # configure figsize so the plot doesn't seem so crowded
+    plt.figure(figsize=(20, 15))
+
+    # plot y (the j in tuple (i, j)
+    plt.plot(X, [j for (i, j) in tuples], 'bo', markersize=7)
+    # plot y_hat (the i in tuple (i, j)
+    plt.plot(X, [i for (i, j) in tuples], 'rx', markersize=7)
+    # plot green lines between y_hat and y
+    plt.plot((X, X), ([i for (i, j) in tuples], [j for (i, j) in tuples]), c='green')
+
+    # label the axes
+    plt.xlabel('alcohol content')
+    plt.ylabel('predicted/true quality')
+    plt.title(title)
+    plt.show()
+
 # read the data --------------------------------------------------
 # -- predefined --
 pth = 'winequality-red.csv'
 df = pd.read_csv(pth, sep=";")
 X = df.drop("quality", axis=1).values[:,10:11]
 y = df["quality"].values
+# generated linear distribution to test with, uncomment to try
+# X, y, coef = make_regression(n_samples=1000, n_features=1, n_informative=1, coef=True, noise=1, random_state=42)
 _1 = np.repeat(1, X.shape[0]).reshape((X.shape[0], 1)) # we need a vector of 1s to perform OLS using only linear algebra
 X1 = np.hstack([_1, X])
 
@@ -97,10 +131,17 @@ X1 = np.hstack([_1, X])
 # -- predefined --
 # this is just for you to check if your solution correct.
 # Using numpy should return the same result (except for rounding)
+
+# fit the line to the data and predict the y values
 mod = lr()
 mod.fit(X, y)
 mod.coef_
 mod.intercept_
+y_hat = mod.predict(X)
+
+# calculate mean squared error
+mse = mean_squared_error(y, y_hat)
+visualize(y, y_hat, X, "sklearn")
 
 # preform OLS estimation as described in the doc string ----------
 # -- students work --
@@ -159,5 +200,13 @@ S2 = np.matmul(X1T, y)
 - for multivariate regressions indices 1 ... n would be the coefficients for our n features
 '''
 S3 = np.matmul(S1, S2)
+
+# predict and visualize y_hat_man
+y_hat_mat = X * S3[1] + S3[0]
+y_hat_mat = np.hstack(y_hat_mat)
+visualize(y, y_hat_mat, X, "matrix multiplication")
+
+# calculate mean squared error
+mse_mat = mean_squared_error(y, y_hat)
 
 # compare results
