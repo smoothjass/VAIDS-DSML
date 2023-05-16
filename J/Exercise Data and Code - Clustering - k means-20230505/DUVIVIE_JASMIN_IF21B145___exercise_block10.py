@@ -129,6 +129,7 @@ def visualize(df, m):
     sns.jointplot(data=df, x="Total_visits_online", y="Avg_Credit_Limit", kind="hist", hue='cluster')
     plt.scatter(m[0][0], m[0, 1], color='darkslateblue')
     plt.scatter(m[1][0], m[1, 1], color='firebrick')
+    plt.savefig('foo.png')
     plt.show()
 
 
@@ -138,3 +139,5 @@ df = df.assign(cluster=np.zeros((660,), dtype=int))
 clustering(df, m)
 visualize(df, m)
 m = means_update(df, m)
+
+# here should be an iteration until the clusters are optimized.
