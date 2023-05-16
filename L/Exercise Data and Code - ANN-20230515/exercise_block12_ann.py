@@ -90,8 +90,8 @@ def activation_sigmoid(val):
     :return: float
     '''
 
-    # TODO
-    return s
+    # https://www.digitalocean.com/community/tutorials/sigmoid-activation-function-python
+    return 1/(1 + np.exp(-val))
 
 
 def neuron_output(incoming_neuron_weights_and_bias_weight, incoming_values_and_bias):
@@ -112,8 +112,25 @@ def forward_propagation(neural_network, input_vector, verbosity=2):
     :return:
     '''
 
-    # TODO
+    # TODO split up into functions?
+    for layer in neural_network:
+        output_vector = []
+        for node in layer:
+            # get bias from index 0 and remove it from there so that node and input_vector have the same len
+            bias = out = node.pop(0)
+            # while indexes are left, multiply and add
+            for i in range(len(node)):
+                out = out + node[i]*input_vector[i]
+            out = activation_sigmoid(out)
+            output_vector.append(out)
+            node.insert(0, bias)
+        input_vector = output_vector
+    # at the end, input_vector should hold the final output, which is an unfortunate naming but then again,
+    # it makes sense, as each output had been used as new input soooooo that's ok
 
+    return input_vector[0]
+
+    # TODO
     # if verbosity >= 1:
     #    print("\nProcessing layer: ", count, layer)
     #    print("incoming values and bias: ", value_flow)
@@ -123,6 +140,10 @@ def forward_propagation(neural_network, input_vector, verbosity=2):
 
 
 def randomArchitecture(architecture):
+    # TODO I should use the architecture
+    #
+    #  but I can't wrap my head around this right now
+
     nn = []
 
     layer1 = []
@@ -188,7 +209,12 @@ output = 0.7
 input = [9, 3]
 architecture = [2, 3, 4, 1]
 
-for i in np.arange(1):
+results = []
+for i in np.arange(3):
     nn = randomArchitecture(architecture)
     out = forward_propagation(nn, input, verbosity=2)
-    print("error: ")  # , ???)
+    error = abs(output-out)
+    print("error: ", error)
+    result = [nn, error]
+    results.append(result)
+
