@@ -91,7 +91,7 @@ def activation_sigmoid(val):
     '''
 
     # https://www.digitalocean.com/community/tutorials/sigmoid-activation-function-python
-    return 1/(1 + np.exp(-val))
+    return 1 / (1 + np.exp(-val))
 
 
 def neuron_output(incoming_neuron_weights_and_bias_weight, incoming_values_and_bias):
@@ -120,7 +120,7 @@ def forward_propagation(neural_network, input_vector, verbosity=2):
             bias = out = node.pop(0)
             # while indexes are left, multiply and add
             for i in range(len(node)):
-                out = out + node[i]*input_vector[i]
+                out = out + node[i] * input_vector[i]
             out = activation_sigmoid(out)
             output_vector.append(out)
             node.insert(0, bias)
@@ -140,67 +140,45 @@ def forward_propagation(neural_network, input_vector, verbosity=2):
 
 
 def randomArchitecture(architecture):
-    # TODO I should use the architecture
-    #
-    #  but I can't wrap my head around this right now
-
     nn = []
 
-    layer1 = []
-    layer2 = []
-    layerOut = []
-
-    # three nodes in layer 1
-    for i in range(3):
-        node = []
-        # one bias and two weights -> 3 random numbers
-        for j in range(3):
-            node.append(np.random.randint(1,10)/10)
-        layer1.append(node)
-    nn.append(layer1)
-
-    # four nodes in layer 2
-    for i in range(4):
-        node = []
-        # one bias and three weights -> 4 random numbers
-        for j in range(4):
-            node.append(np.random.randint(1, 10) / 10)
-        layer2.append(node)
-    nn.append(layer2)
-
-    # one node in layer out
-    node = []
-    # one bias and four weights -> 5 random numbers
-    for j in range(5):
-        node.append(np.random.randint(1, 10) / 10)
-    layerOut.append(node)
-    nn.append(layerOut)
+    for i in range(1, len(architecture)):  # the network
+        layer = []
+        for j in range(architecture[i]):  # the layer
+            node = []
+            for k in range(architecture[i - 1] + 1):  # the node
+                # (we need as many weights as the number of nodes in the layer before this one plus 1 for the bias
+                node.append(np.random.randint(1, 10) / 10)
+            layer.append(node)
+        nn.append(layer)
 
     return (nn)
 
-    # list of neurons, neurons are lists of weights and biases, weights and biases are floats
-    # list (layers) of lists (neuros) of lists (weights)
-    # list of layers:
-    # [
-    # (1),      layer 1
-    # (2),      layer 2
-    # [o]       layer out
-    # ]
 
-    # list of lists of neurons:
-    # [
-    # [b1, b2, b3],         layer 1
-    # [b1, b2, b3, b4],     layer 2
-    # [b1]                  layer out
-    # ]
+'''
+# list of neurons, neurons are lists of weights and biases, weights and biases are floats
+# list (layers) of lists (neuros) of lists (weights)
+# list of layers:
+# [
+# (1),      layer 1
+# (2),      layer 2
+# [o]       layer out
+# ]
 
-    # list of lists of neurons of lists of biases and weights:
-    # [
-    # [[b1, w11, w12], [b2, w21, w22], [b3, w31, w32]],                                         layer 1
-    # [[b1, w11, w12, w13], [b2, w21, w22, w23], [b3, w31, w32, w33], [b4, w41, w42, w43]],     layer 2
-    # [b1, w11, w12, w13, w14]                                                                  layer out
-    # ]
+# list of lists of neurons:
+# [
+# [b1, b2, b3],         layer 1
+# [b1, b2, b3, b4],     layer 2
+# [b1]                  layer out
+# ]
 
+# list of lists of neurons of lists of biases and weights:
+# [
+# [[b1, w11, w12], [b2, w21, w22], [b3, w31, w32]],                                         layer 1
+# [[b1, w11, w12, w13], [b2, w21, w22, w23], [b3, w31, w32, w33], [b4, w41, w42, w43]],     layer 2
+# [b1, w11, w12, w13, w14]                                                                  layer out
+# ]
+'''
 
 # ----------------------------------------------------------------------------------------------------------------------
 # run the forward pass with random weights/biases, calculate the error
@@ -213,8 +191,7 @@ results = []
 for i in np.arange(3):
     nn = randomArchitecture(architecture)
     out = forward_propagation(nn, input, verbosity=2)
-    error = abs(output-out)
+    error = abs(output - out)
     print("error: ", error)
     result = [nn, error]
     results.append(result)
-
