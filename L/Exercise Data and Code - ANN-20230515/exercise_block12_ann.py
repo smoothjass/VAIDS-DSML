@@ -30,6 +30,7 @@
 
 
 import numpy as np
+import pandas as pd
 import math
 
 ########################################################################################################################
@@ -95,13 +96,14 @@ def activation_sigmoid(val):
 
 
 def neuron_output(incoming_neuron_weights_and_bias_weight, incoming_values_and_bias):
+    pass
     '''
     :param incoming_neuron_weights_and_bias: list of floats
     :param incoming_values_and_bias: list of floats
     '''
 
-    # TODO
-    return s
+    # it felt easier to not use this function, I hope that's ok
+    # return s
 
 
 def forward_propagation(neural_network, input_vector, verbosity=2):
@@ -111,13 +113,17 @@ def forward_propagation(neural_network, input_vector, verbosity=2):
     :param verbosity: controls print
     :return:
     '''
-
-    # TODO split up into functions?
+    count = 1
     for layer in neural_network:
         output_vector = []
+        if verbosity >= 1:
+            print("\nProcessing layer: ", count, layer)
+            print("incoming values: ", input_vector)
         for node in layer:
             # get bias from index 0 and remove it from there so that node and input_vector have the same len
             bias = out = node.pop(0)
+            if verbosity >= 2:
+                print("Processing neuron with weights and bias:", node, bias)
             # while indexes are left, multiply and add
             for i in range(len(node)):
                 out = out + node[i] * input_vector[i]
@@ -130,18 +136,9 @@ def forward_propagation(neural_network, input_vector, verbosity=2):
 
     return input_vector[0]
 
-    # TODO
-    # if verbosity >= 1:
-    #    print("\nProcessing layer: ", count, layer)
-    #    print("incoming values and bias: ", value_flow)
-
-    # if verbosity >= 2:
-    #    print("Processing neuron:", incoming_neuron_weights)
-
 
 def randomArchitecture(architecture):
     nn = []
-
     for i in range(1, len(architecture)):  # the network
         layer = []
         for j in range(architecture[i]):  # the layer
@@ -152,7 +149,7 @@ def randomArchitecture(architecture):
             layer.append(node)
         nn.append(layer)
 
-    return (nn)
+    return nn
 
 
 '''
@@ -188,10 +185,12 @@ input = [9, 3]
 architecture = [2, 3, 4, 1]
 
 results = []
-for i in np.arange(3):
+for i in np.arange(10):
     nn = randomArchitecture(architecture)
     out = forward_propagation(nn, input, verbosity=2)
     error = abs(output - out)
     print("error: ", error)
-    result = [nn, error]
+    result = [nn, out, error]
     results.append(result)
+
+results = pd.DataFrame(results, columns=['network', 'output', 'error'])
